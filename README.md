@@ -4,7 +4,7 @@ Converts a Google Takeout dump of Google Keep to daily notes pages for the day
 that each snippet was written.
 
 * Tested on Python 3.7.9
-* Requires marshmallow `pip install -r requirements.txt`
+* Requires marshmallow `pip install .`
 
 ## Usage
 

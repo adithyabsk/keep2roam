@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "keep2roam"
+version = "0.1.0"
+description = "Convert Google Keep Takeout Files to Roam Daily Notes Pages"
+authors = ["Adithya Balaji <adithyabsk@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+marshmallow = "^3.9.0"
+click = "^7.1.2"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+k2r = "keep2roam:k2r"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

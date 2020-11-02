@@ -5,7 +5,7 @@ import json
 
 import click
 
-from models import NoteSchema, Note
+from keep2roam.models import NoteSchema, Note
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -66,7 +66,3 @@ def cli(src: str, dest: str) -> None:
 
     """
     convert(Path(src), Path(dest))
-
-
-if __name__ == "__main__":
-    cli()

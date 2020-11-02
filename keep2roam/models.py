@@ -153,7 +153,7 @@ class Note(BaseModel):
         return ret_str
 
 
-class List_(BaseModel):
+class NoteList(BaseModel):
     ...
 
 
@@ -166,8 +166,8 @@ class AnnotationSchema(BaseSchema):
     title = fields.Str()
 
 
-class ListSchema(BaseSchema):
-    __model__ = List_
+class NoteListSchema(BaseSchema):
+    __model__ = NoteList
 
     text = fields.Str()
     is_checked = fields.Bool()
@@ -179,7 +179,7 @@ class NoteSchema(BaseSchema):
     is_pinned = fields.Bool()
     title = fields.Str()
     annotations = fields.List(fields.Nested(AnnotationSchema))
-    list_content = fields.List(fields.Nested(ListSchema))
+    list_content = fields.List(fields.Nested(NoteListSchema))
     color = fields.Str()
     is_trashed = fields.Bool()
     text_content = fields.Str()
