@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
-import argparse
 from pathlib import Path
 import json
 
+import click
+
 from models import NoteSchema, Note
+
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+
+class Keep2RoamException(Exception):
+    pass
 
 
 def open_note(json_fpath: Path) -> Note:
@@ -16,8 +23,9 @@ def open_note(json_fpath: Path) -> Note:
     try:
         return NoteSchema().load(keep_dict)
     except Exception:
-        print(json_fpath)
-        quit()
+        raise Keep2RoamException(
+            f"An error occurred while parsing {json_fpath}, skipping..."
+        )
 
 
 def write_or_append_note(note: Note, root_path: Path):
@@ -40,34 +48,25 @@ def convert(read_path: Path, write_path: Path):
     # Iterate over the found files and convert each one to a suitable
     # markdown format
     for jf in json_files:
-        note = open_note(jf)
-        if not note.is_empty():
-            write_or_append_note(note, write_path)
+        try:
+            note = open_note(jf)
+            if not note.is_empty():
+                write_or_append_note(note, write_path)
+        except Keep2RoamException:
+            pass
 
 
-def run_parser() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Convert a Google Keep dump to Markdown files."
-    )
-    parser.add_argument(
-        'input',
-        type=Path,
-        help='The folder containing the Google Keep Dump.'
-    )
-    parser.add_argument(
-        'output',
-        type=Path,
-        help='The folder to write the converted files.'
-    )
-    args = parser.parse_args()
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('src', type=click.Path(exists=True, file_okay=False))
+@click.argument('dest', type=click.Path(exists=True, file_okay=False, writable=True))
+def cli(src: str, dest: str) -> None:
+    """Convert SRC Google Keep Takeout dump and write to DEST folder.
 
-    return args
+    Assumes SRC exists and creates DEST folder if it does not exist.
 
-
-def main():
-    args = run_parser()
-    convert(args.input, args.output)
+    """
+    convert(Path(src), Path(dest))
 
 
 if __name__ == "__main__":
-    main()
+    cli()
