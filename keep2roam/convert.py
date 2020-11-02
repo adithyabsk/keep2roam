@@ -6,6 +6,7 @@ import json
 import click
 
 from keep2roam.models import NoteSchema, Note
+from keep2roam.version import get_version
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -56,9 +57,18 @@ def convert(read_path: Path, write_path: Path):
             pass
 
 
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo(get_version())
+    ctx.exit()
+
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument('src', type=click.Path(exists=True, file_okay=False))
 @click.argument('dest', type=click.Path(exists=True, file_okay=False, writable=True))
+@click.option('--version', is_flag=True, callback=print_version, is_eager=True, expose_value=False,
+              help="Prints the CLI version")
 def cli(src: str, dest: str) -> None:
     """Convert SRC Google Keep Takeout dump and write to DEST folder.
 
