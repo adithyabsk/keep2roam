@@ -17,21 +17,23 @@ jobs:
         run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Add Poetry to Path
-        run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+      - name: Add Poetry to Path Unix
+        run: |
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          echo "POETRY_VENV=$HOME/.virtualenvs" >> $GITHUB_ENV
       - name: Configure Poetry
         run: |
           poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
+          poetry config virtualenvs.path ${{ env.POETRY_VENV }}
       - name: Cache Poetry virtualenv
         uses: actions/cache@v2.0.0
-        id: cache-poetry
+        id: cache-poetry-lint
         with:
-          path: ~/.virtualenvs
-          key: poetry|pre-commit|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          path: ${{ env.POETRY_VENV }}
+          key: poetry-lint|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
         run: poetry install -vvv
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        if: steps.cache-poetry-lint.outputs.cache-hit != 'true'
       - name: Add poetry env to PATH
         run: echo "$( poetry env info --path )/bin" >> $GITHUB_PATH
       - name: Run Lint Steps
@@ -44,6 +46,9 @@ jobs:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
         python: [ ^3.7, ^3.8, ^3.9 ]
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python }}
     steps:
       - uses: actions/checkout@v2.3.3
       - uses: actions/setup-python@v2
@@ -53,21 +58,32 @@ jobs:
         run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Add Poetry to Path
-        run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+      - name: Add Poetry to Path Unix
+        run: |
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          echo "POETRY_VENV=$HOME/.virtualenvs" >> $GITHUB_ENV
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+      - name: Add Poetry to Path Windows
+        run: |
+          echo "$env:USERPROFILE\.poetry\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "POETRY_VENV=$env:USERPROFILE\.virtualenvs" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        if: runner.os == 'Windows'
+      - name: Debug Windows Path
+        run: $env:Path
+        if: runner.os == 'Windows'
       - name: Configure Poetry
         run: |
           poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
+          poetry config virtualenvs.path ${{ env.POETRY_VENV }}
       - name: Cache Poetry virtualenv
         uses: actions/cache@v2.0.0
-        id: cache-poetry
+        id: cache-poetry-build
         with:
-          path: ~/.virtualenvs
-          key: poetry|build|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          path: ${{ env.POETRY_VENV }}
+          key: poetry-build|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
         run: poetry install -vvv
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        if: steps.cache-poetry-build.outputs.cache-hit != 'true'
       - name: Run Pytest
         run: poetry run pytest --cov-report=xml
       - uses: codecov/codecov-action@v1
@@ -75,3 +91,4 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: true
           verbose: true
+          env_vars: OS,PYTHON

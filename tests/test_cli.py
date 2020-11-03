@@ -21,7 +21,7 @@ def test_cli_entry(monkeypatch):
 
 
 def test_cli_version(monkeypatch):
-    monkeypatch.setattr("keep2roam.cli.get_version", lambda: "0.x")
+    monkeypatch.setattr("keep2roam.cli.version", "0.x")
     from keep2roam.cli import cli
 
     runner = CliRunner()
