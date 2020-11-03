@@ -6,3 +6,4 @@ markdown
 .idea
 .coverage
 htmlcov
+dist
