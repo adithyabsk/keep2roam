@@ -17,7 +17,7 @@ jobs:
         run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Add Poetry to Path Unix
+      - name: Add Poetry to Path
         run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
       - name: Configure Poetry
         run: |
@@ -53,8 +53,8 @@ jobs:
         run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Add Poetry to Path Unix
-        run: echo "::add-path::$HOME/.poetry/bin"
+      - name: Add Poetry to Path
+        run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
       - name: Configure Poetry
         run: |
           poetry config virtualenvs.in-project false
