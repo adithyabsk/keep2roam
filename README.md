@@ -2,11 +2,11 @@
 
 ![build](https://github.com/adithyabsk/keep2roam/workflows/build/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/adithyabsk/keep2roam/branch/master/graph/badge.svg?token=RPI1KJKN8G)](https://codecov.io/gh/adithyabsk/keep2roam)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/keep2roam?style=plastic)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/keep2roam?style=plastic)
-![GitHub](https://img.shields.io/github/license/adithyabsk/keep2roam?logo=6cc644&style=plastic)
-![Black](https://img.shields.io/badge/code%20style-black-000000.svg)
-![Twitter Follow](https://img.shields.io/twitter/follow/adithya_balaji?style=social)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/keep2roam?style=plastic)](https://pypi.org/project/keep2roam/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/keep2roam?style=plastic)](https://pypistats.org/search/keep2roam)
+[![GitHub](https://img.shields.io/github/license/adithyabsk/keep2roam?logo=6cc644&style=plastic)](https://github.com/adithyabsk/keep2roam/blob/master/LICENSE)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Twitter Follow](https://img.shields.io/twitter/follow/adithya_balaji?style=social)](https://twitter.com/intent/follow?screen_name=adithya_balaji)
 
 Convert a Takeout of Google Keep to Roam Daily Notes for the day that each
 snippet was written. If multiple notes were written on the same day, they are
