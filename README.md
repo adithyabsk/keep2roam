@@ -1,7 +1,9 @@
 # Google Keep to Roam Daily Notes
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/adithyabsk/keep2roam/build?color=6cc644&logo=github&style=plastic)
-![Codecov](https://img.shields.io/codecov/c/github/adithyabsk/keep2roam?color=6cc644&style=plastic)
+![build](https://github.com/adithyabsk/keep2roam/workflows/build/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/adithyabsk/keep2roam/branch/master/graph/badge.svg?token=RPI1KJKN8G)](https://codecov.io/gh/adithyabsk/keep2roam)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/keep2roam?style=plastic)
+![PyPI - Downloads](https://img.shields.io/pypi/dw/keep2roam?style=plastic)
 ![GitHub](https://img.shields.io/github/license/adithyabsk/keep2roam?logo=6cc644&style=plastic)
 ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)
 ![Twitter Follow](https://img.shields.io/twitter/follow/adithya_balaji?style=social)
@@ -22,7 +24,7 @@ similar.
 ```console
 $ cd ~/Downloads
 $ tar -xvf takeout-{ID}.zip
-$ pip install git+https://github.com/adithyabsk/keep2roam.git
+$ pip install keep2roam
 $ mkdir markdown
 $ k2r -h
 Usage: k2r [OPTIONS] SRC DEST
