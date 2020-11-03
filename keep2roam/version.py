@@ -3,9 +3,14 @@
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
-    import importlib_metadata
+    import importlib_metadata  # type: ignore
 
 
-def get_version():
-    """Get the CLI version."""
-    return importlib_metadata.version('keep2roam')
+def get_version() -> str:
+    """Get the CLI version.
+
+    Returns:
+        The package version
+
+    """
+    return importlib_metadata.version("keep2roam")  # type: ignore

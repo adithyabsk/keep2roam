@@ -1,9 +1,12 @@
+"""Schema and Models for Google Keep objects."""
 import re
 import unicodedata
 from datetime import datetime
-from typing import Any, Dict, Mapping
 from types import SimpleNamespace
-from marshmallow import Schema, fields, post_load, EXCLUDE
+from typing import Any, Dict, Mapping, cast
+
+from marshmallow import EXCLUDE, Schema, fields, post_load
+
 
 JSON = Dict[str, Any]
 
@@ -15,7 +18,7 @@ def _process_dict_values(value: Any) -> Any:
         value: A dict, list, or value returned from a JSON response.
 
     Returns:
-        Either an UnknownModel, a List of processed values, or the original value \
+        Either an SimpleNamespace, a List of processed values, or the original value \
             passed through.
 
     """
@@ -27,23 +30,49 @@ def _process_dict_values(value: Any) -> Any:
         return value
 
 
-def camelcase(s):
+def camelcase(s: str) -> str:
+    """Convert snake case to camel case.
+
+    Example:
+        >>> camelcase("camel_case")
+        "camelCase"
+    """
     parts = iter(s.split("_"))
     return next(parts) + "".join(i.title() for i in parts)
 
 
-def suffix(d):
-    return 'th' if 11 <= d <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
+def suffix(d: int) -> str:
+    """Convert an input date integer to a string with a suffix.
+
+    Example:
+        >>> suffix(10)
+        "10th"
+        >>> suffix(2)
+        "2nd"
+        >>> suffix(23)
+        "23rd"
+
+    """
+    return "th" if 11 <= d <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(d % 10, "th")
 
 
-def custom_strftime(fmt, t):
-    return t.strftime(fmt).replace('{S}', str(t.day) + suffix(t.day))
+def custom_strftime(fmt: str, t: datetime) -> str:
+    """Add suffixes to dates in strftime.
+
+    Args:
+        fmt: The format string
+        t: The datetime object
+
+    Returns:
+        The string formatted date.
+
+    """
+    # https://stackoverflow.com/a/5891598/3262054
+    return t.strftime(fmt).replace("{S}", str(t.day) + suffix(t.day))
 
 
 class BaseSchema(Schema):
-    """Schema that uses camel-case for its external representation
-    and snake-case for its internal representation.
-    """
+    """Support camel case conversion support and auto object creation."""
 
     __model__: Any = SimpleNamespace
     """Determine the object that is created when the load method is called."""
@@ -51,7 +80,17 @@ class BaseSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    def on_bind_field(self, field_name, field_obj):
+    def on_bind_field(self, field_name: str, field_obj: fields.Field) -> None:
+        """Modify a field when it is bound to the schema.
+
+        Automatically convert all schema fields to their camelCase representations.
+
+        Args:
+            field_name: The name of the field
+            field_obj: The field object
+
+        """
+        # https://marshmallow.readthedocs.io/en/latest/examples.html#inflection-camel-casing-keys
         field_obj.data_key = camelcase(field_obj.data_key or field_name)
 
     @post_load
@@ -74,7 +113,8 @@ class BaseModel(SimpleNamespace):
 
     Note:
         If a passed parameter is a nested dictionary, then it is created with the
-        `UnknownModel` class. If it is a list, then it is created with
+        SimpleNamespace. If it is a list, then it becomes a list of the appropriate
+        model.
 
     Args:
         **kwargs: All passed parameters as converted to instance attributes.
@@ -86,58 +126,96 @@ class BaseModel(SimpleNamespace):
         self.__dict__.update(kwargs)
 
 
-class Annotation(BaseModel):
+class Annotation(BaseModel):  # noqa: D101
     ...
 
 
 class Note(BaseModel):
+    """Google Keep Note model."""
 
     @property
-    def date_and_time(self):
+    def date_and_time(self) -> datetime:
+        """Get a datetime object from the unix epoch timestamp.
+
+        Returns:
+            A initialized datetime object.
+
+        """
         return datetime.fromtimestamp(self.user_edited_timestamp_usec / 1e6)
 
     @property
-    def date_string(self):
-        # https://stackoverflow.com/a/5891598/3262054
+    def date_string(self) -> str:
+        """Get the date as a string in Roam Daily Note format.
+
+        Returns:
+            The datetime as a string.
+
+        """
         return custom_strftime("%B {S}, %Y", self.date_and_time)
 
     @property
-    def time_string(self):
+    def time_string(self) -> str:
+        """Get the time in standard HH:MM AM/PM format.
+
+        Returns:
+            The time as a string.
+
+        """
         return self.date_and_time.strftime("%I:%M %p")
 
-    def is_list(self):
+    def is_list(self) -> bool:
+        """Check if the note is a checklist.
+
+        Returns:
+            The boolean state.
+
+        """
         return hasattr(self, "list_content")
 
-    def is_empty(self):
-        if not self.is_list():
-            return self.title == self.text_content == ""
-        else:
-            return self.title == "" and len(self.list_content) == 0
+    def is_empty(self) -> bool:
+        """Check if the note is empty.
 
-    def _text_content_to_bullet(self):
+        Returns:
+            The boolean state.
+
+        """
+        if not self.is_list():
+            return cast(bool, self.title == self.text_content == "")
+        else:
+            return cast(bool, self.title == "" and len(self.list_content) == 0)
+
+    def _text_content_to_bullet(self) -> str:
         # Prepare body string (sub bullet points)
         # Try to convert all unicode characters to ascii
-        body = unicodedata.normalize('NFKD', self.text_content).encode(
-            'ascii', 'ignore'
-        ).decode()
+        body = (
+            unicodedata.normalize("NFKD", self.text_content)
+            .encode("ascii", "ignore")
+            .decode()
+        )
         # Replace multiple newlines with a single newline
-        body = re.sub(r'\n+', '\n', body).strip()
+        body = re.sub(r"\n+", "\n", body).strip()
         # Remove all whitespace except newlines and deduplicate spaces
-        body = re.compile(r"^\s+|\s+$|[^\S\n\r]+(?=\s)", re.MULTILINE).sub('', body)
+        body = re.compile(r"^\s+|\s+$|[^\S\n\r]+(?=\s)", re.MULTILINE).sub("", body)
         # Prepend newline if body is not empty
         body = f"\n{body}" if body != "" else body
         # Convert all body bullet points into sub-bullets
         # TODO: this could maybe made better to handle lists (sub-sub bullet points!)
-        body = body.replace('\n', '\n    - ')
+        body = body.replace("\n", "\n    - ")
 
         return body
 
-    def _list_content_to_bullet(self):
+    def _list_content_to_bullet(self) -> str:
         text_list = [lc.text for lc in self.list_content]
 
-        return '\n    - ' + '\n    - '.join(text_list)
+        return "\n    - " + "\n    - ".join(text_list)
 
-    def to_markdown_string(self):
+    def to_markdown_string(self) -> str:
+        """Convert the note to a markdown string.
+
+        Returns:
+            A string containing a markdown file.
+
+        """
         # Prepare title string (main bullet point)
         title_str = f"- {self.title or self.time_string}"
 
@@ -154,10 +232,12 @@ class Note(BaseModel):
 
 
 class NoteList(BaseModel):
+    """Base class for Lists within notes."""
+
     ...
 
 
-class AnnotationSchema(BaseSchema):
+class AnnotationSchema(BaseSchema):  # noqa: D101
     __model__ = Annotation
 
     source = fields.Str()
@@ -166,14 +246,14 @@ class AnnotationSchema(BaseSchema):
     title = fields.Str()
 
 
-class NoteListSchema(BaseSchema):
+class NoteListSchema(BaseSchema):  # noqa: D101
     __model__ = NoteList
 
     text = fields.Str()
     is_checked = fields.Bool()
 
 
-class NoteSchema(BaseSchema):
+class NoteSchema(BaseSchema):  # noqa: D101
     __model__ = Note
 
     is_pinned = fields.Bool()
