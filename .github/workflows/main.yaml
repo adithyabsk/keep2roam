@@ -6,8 +6,40 @@ on:
     branches: [ master ]
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.3
+      - uses: actions/setup-python@v2
+      - name: set PY env var
+        run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
+      - name: Install Poetry
+        run: |
+          pip install --upgrade pip
+          curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+      - name: Add Poetry to Path Unix
+        run: echo "::add-path::$HOME/.poetry/bin"
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.in-project false
+          poetry config virtualenvs.path ~/.virtualenvs
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v2.0.0
+        id: cache-poetry
+        with:
+          path: ~/.virtualenvs
+          key: poetry|pre-commit|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+      - name: Install Project Dependencies (Poetry)
+        run: poetry install -vvv
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
+      - name: Add poetry env to PATH
+        run: |
+          echo "::add-path::$( poetry env info --path )/bin"
+      - name: Run Lint Steps
+        uses: pre-commit/action@v2.0.0
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v2.3.3
       - uses: actions/setup-python@v2
@@ -32,11 +64,6 @@ jobs:
       - name: Install Project Dependencies (Poetry)
         run: poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
-      - name: Add poetry env to PATH
-        run: |
-          echo "::add-path::$( poetry env info --path )/bin"
-      - name: Run Lint Steps
-        uses: pre-commit/action@v2.0.0
       - name: Run Pytest
         run: poetry run pytest --cov-report=xml
       - uses: codecov/codecov-action@v1
