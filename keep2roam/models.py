@@ -5,7 +5,14 @@ from datetime import datetime
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, cast
 
-from marshmallow import EXCLUDE, Schema, fields, post_load
+from marshmallow import (
+    EXCLUDE,
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    validates_schema,
+)
 
 
 JSON = Dict[str, Any]
@@ -23,7 +30,7 @@ def _process_dict_values(value: Any) -> Any:
 
     """
     if isinstance(value, Mapping):
-        return SimpleNamespace(**value)
+        return SimpleNamespace(**value)  # pragma: no cover
     elif isinstance(value, list):
         return [_process_dict_values(v) for v in value]
     else:
@@ -35,7 +42,7 @@ def camelcase(s: str) -> str:
 
     Example:
         >>> camelcase("camel_case")
-        "camelCase"
+        'camelCase'
     """
     parts = iter(s.split("_"))
     return next(parts) + "".join(i.title() for i in parts)
@@ -46,11 +53,13 @@ def suffix(d: int) -> str:
 
     Example:
         >>> suffix(10)
-        "10th"
+        'th'
         >>> suffix(2)
-        "2nd"
+        'nd'
         >>> suffix(23)
-        "23rd"
+        'rd'
+        >>> suffix(4)
+        'th'
 
     """
     return "th" if 11 <= d <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(d % 10, "th")
@@ -58,6 +67,17 @@ def suffix(d: int) -> str:
 
 def custom_strftime(fmt: str, t: datetime) -> str:
     """Add suffixes to dates in strftime.
+
+    Example:
+        >>> from datetime import date
+        >>> custom_strftime("{S}", date(2020, 1, 1))
+        '1st'
+        >>> custom_strftime("{S}", date(2020, 2, 2))
+        '2nd'
+        >>> custom_strftime("{S}", date(2020, 10, 3))
+        '3rd'
+        >>> custom_strftime("{S}", date(2020, 10, 24))
+        '24th'
 
     Args:
         fmt: The format string
@@ -257,11 +277,18 @@ class NoteSchema(BaseSchema):  # noqa: D101
     __model__ = Note
 
     is_pinned = fields.Bool()
-    title = fields.Str()
+    title = fields.Str(required=True)
     annotations = fields.List(fields.Nested(AnnotationSchema))
     list_content = fields.List(fields.Nested(NoteListSchema))
     color = fields.Str()
     is_trashed = fields.Bool()
     text_content = fields.Str()
-    user_edited_timestamp_usec = fields.Int()
+    user_edited_timestamp_usec = fields.Int(required=True)
     is_archived = fields.Bool()
+
+    @validates_schema
+    def _check_list_or_text_content(self, data: JSON, **kwargs: Any) -> None:
+        if "list_content" not in data and "text_content" not in data:
+            raise ValidationError(
+                "Either list_content or text_content must be in Note contents."
+            )

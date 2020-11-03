@@ -1,0 +1,9 @@
+{
+  "color": "DEFAULT",
+  "isTrashed": false,
+  "isPinned": false,
+  "isArchived": false,
+  "textContent": "Test Note",
+  "title": "Test Note Title",
+  "userEditedTimestampUsec": 1577836800000000
+}

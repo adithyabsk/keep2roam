@@ -4,3 +4,5 @@ markdown
 .DS_Store
 .python-version
 .idea
+.coverage
+htmlcov

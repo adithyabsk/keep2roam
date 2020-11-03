@@ -1,0 +1,22 @@
+{
+  "color": "DEFAULT",
+  "isTrashed": false,
+  "isPinned": false,
+  "isArchived": false,
+  "listContent": [
+    {
+      "text": "Test Item 1",
+      "isChecked": false
+    },
+    {
+      "text": "Test Item 2",
+      "isChecked": false
+    },
+    {
+      "text": "Test Item 3",
+      "isChecked": false
+    }
+  ],
+  "title": "Test List Title",
+  "userEditedTimestampUsec": 1577836800000000
+}

@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import cast
 
+from marshmallow import ValidationError
+
 from keep2roam.models import Note, NoteSchema
 
 
@@ -33,7 +35,7 @@ def get_note(json_fpath: Path) -> Note:
     # Load and return the Note object
     try:
         return cast(Note, NoteSchema().load(keep_dict))
-    except Exception:
+    except ValidationError:
         raise Keep2RoamException(
             f"An error occurred while parsing {json_fpath}, skipping..."
         )
@@ -72,10 +74,9 @@ def convert(read_path: Path, write_path: Path) -> None:
     """
     # Collect all of the json files in the archive path
     json_files = [p for p in read_path.iterdir() if p.is_file() and p.suffix == ".json"]
-    print(f"Found {len(json_files)}...")
+    print(f"Found {len(json_files)} Google Keep json files...")
 
-    # Iterate over the found files and convert each one to a suitable
-    # markdown format
+    # Iterate over the found files and convert each one to a suitable markdown format
     for jf in json_files:
         try:
             note = get_note(jf)
