@@ -30,11 +30,17 @@ jobs:
           path: ~/.virtualenvs
           key: poetry|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
-        run: |
-          poetry install -vvv
+        run: poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
       - name: Add poetry env to PATH
         run: |
           echo "::add-path::$( poetry env info --path )/bin"
       - name: Run Lint Steps
         uses: pre-commit/action@v2.0.0
+      - name: Run Pytest
+        run: poetry run pytest --cov-report=xml
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+          verbose: true
