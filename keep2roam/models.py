@@ -161,7 +161,7 @@ class Note(BaseModel):
             A initialized datetime object.
 
         """
-        return datetime.fromtimestamp(self.user_edited_timestamp_usec / 1e6)
+        return datetime.utcfromtimestamp(self.user_edited_timestamp_usec / 1e6)
 
     @property
     def date_string(self) -> str:

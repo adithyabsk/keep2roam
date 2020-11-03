@@ -37,15 +37,15 @@ def note_list():
 def test_note_date_and_time(note):
     from datetime import datetime
 
-    assert note.date_and_time == datetime(2019, 12, 31, 19, 0)
+    assert note.date_and_time == datetime(2020, 1, 1, 0, 0)
 
 
 def test_note_date_string(note):
-    assert note.date_string == "December 31st, 2019"
+    assert note.date_string == "January 1st, 2020"
 
 
 def test_note_time_string(note):
-    assert note.time_string == "07:00 PM"
+    assert note.time_string == "12:00 AM"
 
 
 @pytest.mark.parametrize("note_obj, result", [("note", False), ("note_list", True)])
@@ -69,7 +69,7 @@ def test_note_list_is_empty(note_list):
 def test_to_markdown_string(note):
     assert note.to_markdown_string() == "- Test Note Title\n    - Test Note\n"
     setattr(note, "title", "")
-    assert note.to_markdown_string() == "- 07:00 PM\n    - Test Note\n"
+    assert note.to_markdown_string() == "- 12:00 AM\n    - Test Note\n"
 
 
 def test_to_markdown_string_list(note_list):
@@ -78,5 +78,5 @@ def test_to_markdown_string_list(note_list):
     )
     setattr(note_list, "title", "")
     assert note_list.to_markdown_string() == (
-        "- 07:00 PM\n    - Test Item 1\n    - Test Item 2\n    - Test Item 3\n"
+        "- 12:00 AM\n    - Test Item 1\n    - Test Item 2\n    - Test Item 3\n"
     )
