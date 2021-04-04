@@ -237,7 +237,7 @@ class Note(BaseModel):
 
         """
         # Prepare title string (main bullet point)
-        title_str = f"- {self.title or self.time_string}"
+        title_str = f"- {self.title or self.time_string} #[[Import from Google Keep]]"
 
         if not self.is_list():
             body = self._text_content_to_bullet()
